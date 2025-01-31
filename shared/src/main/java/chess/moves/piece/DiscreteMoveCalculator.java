@@ -19,7 +19,9 @@ public abstract class DiscreteMoveCalculator implements PieceMovesCalculator {
         for(int[] direction : directions) {
             int row = myPosition.getRow() + direction[0];
             int col = myPosition.getColumn() + direction[1];
-            if (!isInBounds(row, col)) continue;
+            if (!isInBounds(row, col)) {
+                continue;
+            }
 
             ChessPosition endPosition = new ChessPosition(row, col);
             ChessPiece piece = board.getPiece(endPosition);
