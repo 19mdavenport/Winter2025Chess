@@ -22,7 +22,7 @@ public class GameService {
         try {
             authorization(authToken);
 
-            if (request.gameName() == null) {
+            if (request == null || request.gameName() == null) {
                 throw new ChessServerException(ChessServerException.Reason.BAD_INPUT, "Game name cannot be null");
             }
 
@@ -49,6 +49,9 @@ public class GameService {
 
     public synchronized void joinGame(JoinGameRequest request, String authToken) throws ChessServerException {
         try {
+            if(request == null) {
+                throw new ChessServerException(ChessServerException.Reason.BAD_INPUT, "Error: Bad Request");
+            }
             GameData game = dataAccess.getGameDAO().findGame(request.gameID());
             if (game == null) {
                 throw new ChessServerException(ChessServerException.Reason.BAD_INPUT, "Error: Game not found");

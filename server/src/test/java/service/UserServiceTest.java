@@ -54,12 +54,27 @@ public class UserServiceTest {
 
 
     @Test
-    public void registerFail() throws ChessServerException {
+    public void registerTwice() throws ChessServerException {
         UserData request = new UserData("SuperUniqueusername", "SuperSecurePa$$w0rd", "noreply@byu.edu");
         new UserService(dataAccess).register(request);
         ChessServerException e = Assertions.assertThrows(ChessServerException.class,
                 () -> new UserService(dataAccess).register(request));
         Assertions.assertEquals(ChessServerException.Reason.ITEM_TAKEN, e.getReason());
+    }
+
+    @Test
+    public void registerBadInput() throws ChessServerException {
+        UserData[] requests = new UserData[]{
+                null,
+                new UserData(null, "SuperSecurePa$$w0rd", "noreply@byu.edu"),
+                new UserData("SuperUniqueusername", null, "noreply@byu.edu"),
+                new UserData("SuperUniqueusername", "SuperSecurePa$$w0rd", null)
+        };
+        for (UserData request : requests) {
+            ChessServerException e = Assertions.assertThrows(ChessServerException.class,
+                    () -> new UserService(dataAccess).register(request));
+            Assertions.assertEquals(ChessServerException.Reason.BAD_INPUT, e.getReason());
+        }
     }
 
 
@@ -70,19 +85,28 @@ public class UserServiceTest {
         userService.register(request);
 
         AuthData result = userService.login(request);
-
         Assertions.assertNotNull(result.authToken());
         Assertions.assertEquals(request.username(), result.username());
 
         AuthData token = authDAO.findAuth(result.authToken());
-
         Assertions.assertEquals(request.username(), token.username());
     }
 
 
     @Test
-    public void loginFail() {
+    public void loginBadUsername() {
         UserData request = new UserData("SuperUniqueusername", "SuperSecurePa$$w0rd", null);
+        ChessServerException e = Assertions.assertThrows(ChessServerException.class,
+                () -> new UserService(dataAccess).login(request));
+        Assertions.assertEquals(ChessServerException.Reason.BAD_AUTH, e.getReason());
+    }
+
+    @Test
+    public void loginBadPassword() throws DataAccessException {
+        UserData user = new UserData("SuperUniqueusername", "SuperSecurePa$$w0rd", "noreply@byu.edu");
+        dataAccess.getUserDAO().insertUser(user);
+
+        UserData request = new UserData("SuperUniqueusername", "WrongPass", null);
         ChessServerException e = Assertions.assertThrows(ChessServerException.class,
                 () -> new UserService(dataAccess).login(request));
         Assertions.assertEquals(ChessServerException.Reason.BAD_AUTH, e.getReason());
