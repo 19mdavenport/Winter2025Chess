@@ -20,7 +20,7 @@ public class UserServiceTest {
 
 
     @BeforeAll
-    public static void beforeAll() throws ChessServerException {
+    public static void beforeAll() {
         dataAccess = new MemoryDataAccess();
         userDAO = dataAccess.getUserDAO();
         authDAO = dataAccess.getAuthDAO();
@@ -35,7 +35,6 @@ public class UserServiceTest {
 
     @Test
     public void registerPass() throws ChessServerException, DataAccessException {
-
         UserData request = new UserData("SuperUniqueusername", "SuperSecurePa$$w0rd", "noreply@byu.edu");
 
         AuthData result = new UserService(dataAccess).register(request);
@@ -56,11 +55,11 @@ public class UserServiceTest {
 
     @Test
     public void registerFail() throws ChessServerException {
-
         UserData request = new UserData("SuperUniqueusername", "SuperSecurePa$$w0rd", "noreply@byu.edu");
         new UserService(dataAccess).register(request);
-        Assertions.assertThrows(RequestItemTakenException.class, () -> new UserService(dataAccess).register(request));
-
+        ChessServerException e = Assertions.assertThrows(ChessServerException.class,
+                () -> new UserService(dataAccess).register(request));
+        Assertions.assertEquals(ChessServerException.Reason.ITEM_TAKEN, e.getReason());
     }
 
 
@@ -78,15 +77,15 @@ public class UserServiceTest {
         AuthData token = authDAO.findAuth(result.authToken());
 
         Assertions.assertEquals(request.username(), token.username());
-
     }
 
 
     @Test
     public void loginFail() {
         UserData request = new UserData("SuperUniqueusername", "SuperSecurePa$$w0rd", null);
-        Assertions.assertThrows(UnauthorizedException.class, () -> new UserService(dataAccess).login(request));
-
+        ChessServerException e = Assertions.assertThrows(ChessServerException.class,
+                () -> new UserService(dataAccess).login(request));
+        Assertions.assertEquals(ChessServerException.Reason.BAD_AUTH, e.getReason());
     }
 
 
@@ -100,15 +99,14 @@ public class UserServiceTest {
 
         AuthData token = authDAO.findAuth(registerResult.authToken());
         Assertions.assertNull(token);
-
     }
 
 
     @Test
     public void logoutFail() {
-
-        Assertions.assertThrows(UnauthorizedException.class, () -> new UserService(dataAccess).logout("Invalid token"));
-
+        ChessServerException e = Assertions.assertThrows(ChessServerException.class,
+                () -> new UserService(dataAccess).logout("Invalid token"));
+        Assertions.assertEquals(ChessServerException.Reason.BAD_AUTH, e.getReason());
     }
 
 }

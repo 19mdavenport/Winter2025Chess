@@ -23,7 +23,7 @@ public class GameService {
             authorization(authToken);
 
             if (request.gameName() == null) {
-                throw new BadRequestException("Game name cannot be null");
+                throw new ChessServerException(ChessServerException.Reason.BAD_INPUT, "Game name cannot be null");
             }
 
             GameData game = new GameData(0, null, null, request.gameName(), new ChessGame());
@@ -31,7 +31,7 @@ public class GameService {
 
             return game;
         } catch (DataAccessException e) {
-            throw new ChessServerException(e);
+            throw new ChessServerException(ChessServerException.Reason.INTERNAL_ERROR, e);
         }
     }
 
@@ -42,7 +42,7 @@ public class GameService {
 
             return new ListGamesResponse(dataAccess.getGameDAO().findAllGames());
         } catch (DataAccessException e) {
-            throw new ChessServerException(e);
+            throw new ChessServerException(ChessServerException.Reason.INTERNAL_ERROR, e);
         }
     }
 
@@ -51,10 +51,10 @@ public class GameService {
         try {
             GameData game = dataAccess.getGameDAO().findGame(request.gameID());
             if (game == null) {
-                throw new BadRequestException("Error: Game not found");
+                throw new ChessServerException(ChessServerException.Reason.BAD_INPUT, "Error: Game not found");
             }
             if (request.playerColor() == null) {
-                throw new BadRequestException("Error: Not a valid color");
+                throw new ChessServerException(ChessServerException.Reason.BAD_INPUT, "Error: Not a valid color");
             }
 
             AuthData auth = authorization(authToken);
@@ -63,7 +63,7 @@ public class GameService {
                     !game.whiteUsername().equals(auth.username()) ||
                     request.playerColor() == ChessGame.TeamColor.BLACK && game.blackUsername() != null &&
                             !game.blackUsername().equals(auth.username())) {
-                throw new RequestItemTakenException("Error: Player color taken");
+                throw new ChessServerException(ChessServerException.Reason.ITEM_TAKEN, "Error: Player color taken");
             }
 
             if (request.playerColor() == ChessGame.TeamColor.WHITE) {
@@ -75,7 +75,7 @@ public class GameService {
 
             dataAccess.getGameDAO().updateGame(game);
         } catch (DataAccessException e) {
-            throw new ChessServerException(e);
+            throw new ChessServerException(ChessServerException.Reason.INTERNAL_ERROR, e);
         }
     }
 
@@ -84,11 +84,11 @@ public class GameService {
         try {
             AuthData auth = dataAccess.getAuthDAO().findAuth(authtoken);
             if (auth == null) {
-                throw new UnauthorizedException("Error: Unauthorized");
+                throw new ChessServerException(ChessServerException.Reason.BAD_AUTH, "Error: Unauthorized");
             }
             return auth;
         } catch (DataAccessException e) {
-            throw new ChessServerException(e);
+            throw new ChessServerException(ChessServerException.Reason.INTERNAL_ERROR, e);
         }
     }
 

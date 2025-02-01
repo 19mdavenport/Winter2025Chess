@@ -16,7 +16,7 @@ public class AdminService {
             dataAccess.getGameDAO().clear();
             dataAccess.getUserDAO().clear();
         }catch (DataAccessException e) {
-            throw new ChessServerException(e);
+            throw new ChessServerException(ChessServerException.Reason.INTERNAL_ERROR, e);
         }
 
     }

@@ -3,10 +3,7 @@ package server;
 import dataaccess.DataAccess;
 import dataaccess.memory.MemoryDataAccess;
 import handler.*;
-import service.BadRequestException;
 import service.ChessServerException;
-import service.RequestItemTakenException;
-import service.UnauthorizedException;
 import spark.Spark;
 
 import java.net.HttpURLConnection;
@@ -38,10 +35,7 @@ public class Server {
 
         Spark.delete("/db", new ClearHandler(dataAccess));
 
-        Spark.exception(BadRequestException.class, new ChessServerExceptionHandler<>(HttpURLConnection.HTTP_BAD_REQUEST));
-        Spark.exception(UnauthorizedException.class, new ChessServerExceptionHandler<>(HttpURLConnection.HTTP_UNAUTHORIZED));
-        Spark.exception(RequestItemTakenException.class, new ChessServerExceptionHandler<>(HttpURLConnection.HTTP_FORBIDDEN));
-        Spark.exception(ChessServerException.class, new ChessServerExceptionHandler<>(HttpURLConnection.HTTP_INTERNAL_ERROR));
+        Spark.exception(ChessServerException.class, new ChessServerExceptionHandler());
 
         Spark.awaitInitialization();
         return Spark.port();
