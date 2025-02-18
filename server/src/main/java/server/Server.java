@@ -3,10 +3,14 @@ package server;
 import dataaccess.DataAccess;
 import dataaccess.memory.MemoryDataAccess;
 import handler.*;
+import model.GameData;
+import model.JoinGameRequest;
+import model.UserData;
+import service.AdminService;
 import service.ChessServerException;
+import service.GameService;
+import service.UserService;
 import spark.Spark;
-
-import java.net.HttpURLConnection;
 
 public class Server {
 
@@ -16,24 +20,34 @@ public class Server {
         Spark.staticFiles.location("web");
 
         DataAccess dataAccess = new MemoryDataAccess();
+        UserService userService = new UserService(dataAccess);
+        GameService gameService = new GameService(dataAccess);
+        AdminService adminService = new AdminService(dataAccess);
 
         // Register your endpoints and handle exceptions here.
-        Spark.get("/costume", (request, response) ->
-                Spark.halt(403, "<html><body><p>You are not authorized to view this costume</p></body></html>"));
-        Spark.post("/user", new RegisterHandler(dataAccess));
+        Spark.post("/user", new HttpHandler<>(UserData.class, (r, a) -> userService.register(r)));
 
         Spark.path("/session", () -> {
-            Spark.post("", new LoginHandler(dataAccess));
-            Spark.delete("", new LogoutHandler(dataAccess));
+            Spark.post("", new HttpHandler<>(UserData.class, (r, a) -> userService.login(r)));
+            Spark.delete("", new HttpHandler<>(null, (r, a) -> {
+                userService.logout(a);
+                return null;
+            }));
         });
 
         Spark.path("/game", () -> {
-            Spark.get("", new ListGamesHandler(dataAccess));
-            Spark.post("", new CreateGameHandler(dataAccess));
-            Spark.put("", new JoinGameHandler(dataAccess));
+            Spark.get("", new HttpHandler<>(null, (r, a) -> gameService.listGames(a)));
+            Spark.post("", new HttpHandler<>(GameData.class, gameService::createGame));
+            Spark.put("", new HttpHandler<>(JoinGameRequest.class, (r, a) -> {
+                gameService.joinGame(r, a);
+                return null;
+            }));
         });
 
-        Spark.delete("/db", new ClearHandler(dataAccess));
+        Spark.delete("/db", new HttpHandler<>(null, (r, a) -> {
+            adminService.clear();
+            return null;
+        }));
 
         Spark.exception(ChessServerException.class, new ChessServerExceptionHandler());
 

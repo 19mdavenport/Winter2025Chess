@@ -1,6 +1,5 @@
 package handler;
 
-import dataaccess.DataAccess;
 import serialize.Serializer;
 import service.ChessServerException;
 import spark.Request;
@@ -9,13 +8,15 @@ import spark.Route;
 
 import java.net.HttpURLConnection;
 
-public abstract class HttpHandler<T> implements Route {
+public class HttpHandler<T> implements Route {
 
-    private final DataAccess dataAccess;
+    private final ChessService<T> service;
+    private final Class<T> requestClass;
 
 
-    public HttpHandler(DataAccess dataAccess) {
-        this.dataAccess = dataAccess;
+    public HttpHandler(Class<T> requestClass, ChessService<T> service) {
+        this.service = service;
+        this.requestClass = requestClass;
     }
 
     @Override
@@ -23,21 +24,18 @@ public abstract class HttpHandler<T> implements Route {
         String authToken = request.headers("Authorization");
 
         T requestObject = null;
-        Class<T> requestClass = getRequestClass();
         if(requestClass != null) {
             requestObject = Serializer.deserialize(request.body(), requestClass);
         }
 
-        Object result = getServiceResult(dataAccess, requestObject, authToken);
+        Object result = service.apply(requestObject, authToken);
 
         response.status(HttpURLConnection.HTTP_OK);
-
         return Serializer.serialize(result);
     }
 
-    protected abstract Class<T> getRequestClass();
-
-    protected abstract Object getServiceResult(DataAccess dataAccess, T request, String authtoken) throws ChessServerException;
-
+    public interface ChessService<T> {
+        Object apply(T requestObject, String authToken) throws ChessServerException;
+    }
 
 }
