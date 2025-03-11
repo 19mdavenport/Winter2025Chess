@@ -1,18 +1,23 @@
-package service;
+package exception;
 
 /**
  * Exception for any server-specific irregularity during execution
  */
-public class ChessServerException extends Exception {
+public class ResponseException extends Exception {
     private final Reason reason;
 
-    public ChessServerException(Reason reason, String message) {
+    public ResponseException(Reason reason, String message) {
         super(message);
         this.reason = reason;
     }
 
-    public ChessServerException(Reason reason, Throwable throwable) {
+    public ResponseException(Reason reason, Throwable throwable) {
         super(throwable);
+        this.reason = reason;
+    }
+
+    public ResponseException(Reason reason, String message, Throwable cause) {
+        super(message, cause);
         this.reason = reason;
     }
 

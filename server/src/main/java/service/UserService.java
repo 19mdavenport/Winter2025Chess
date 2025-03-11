@@ -2,6 +2,7 @@ package service;
 
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
+import exception.ResponseException;
 import model.AuthData;
 import model.UserData;
 import org.mindrot.jbcrypt.BCrypt;
@@ -16,15 +17,15 @@ public class UserService {
     }
 
 
-    public AuthData register(UserData user) throws ChessServerException {
+    public AuthData register(UserData user) throws ResponseException {
         try {
             if (user == null || user.username() == null || user.password() == null || user.email() == null) {
-                throw new ChessServerException(ChessServerException.Reason.BAD_INPUT, "Username, Password, and email must not be null");
+                throw new ResponseException(ResponseException.Reason.BAD_INPUT, "Username, Password, and email must not be null");
             }
 
 
             if (dataAccess.getUserDAO().getUser(user.username()) != null) {
-                throw new ChessServerException(ChessServerException.Reason.ITEM_TAKEN, "username taken");
+                throw new ResponseException(ResponseException.Reason.ITEM_TAKEN, "username taken");
             }
 
             String hashedPassword = BCrypt.hashpw(user.password(), BCrypt.gensalt());
@@ -37,16 +38,16 @@ public class UserService {
 
             return auth;
         } catch (DataAccessException e) {
-            throw new ChessServerException(ChessServerException.Reason.INTERNAL_ERROR, e);
+            throw new ResponseException(ResponseException.Reason.INTERNAL_ERROR, e);
         }
     }
 
 
-    public AuthData login(UserData user) throws ChessServerException {
+    public AuthData login(UserData user) throws ResponseException {
         try {
             UserData foundUser = dataAccess.getUserDAO().getUser(user.username());
             if (foundUser == null || !BCrypt.checkpw(user.password(), foundUser.password())) {
-                throw new ChessServerException(ChessServerException.Reason.BAD_AUTH, "Incorrect username or password");
+                throw new ResponseException(ResponseException.Reason.BAD_AUTH, "Incorrect username or password");
             }
 
             AuthData auth = AuthData.getNewAuthData(user.username());
@@ -54,20 +55,20 @@ public class UserService {
 
             return auth;
         } catch (DataAccessException e) {
-            throw new ChessServerException(ChessServerException.Reason.INTERNAL_ERROR, e);
+            throw new ResponseException(ResponseException.Reason.INTERNAL_ERROR, e);
         }
     }
 
 
-    public void logout(String authtoken) throws ChessServerException {
+    public void logout(String authtoken) throws ResponseException {
         try {
             AuthData delete = dataAccess.getAuthDAO().findAuth(authtoken);
             if (delete == null) {
-                throw new ChessServerException(ChessServerException.Reason.BAD_AUTH, "Unauthorized");
+                throw new ResponseException(ResponseException.Reason.BAD_AUTH, "Unauthorized");
             }
             dataAccess.getAuthDAO().deleteAuth(authtoken);
         } catch (DataAccessException e) {
-            throw new ChessServerException(ChessServerException.Reason.INTERNAL_ERROR, e);
+            throw new ResponseException(ResponseException.Reason.INTERNAL_ERROR, e);
         }
     }
 

@@ -4,6 +4,7 @@ import chess.ChessGame;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import dataaccess.memory.MemoryDataAccess;
+import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -17,7 +18,7 @@ public class AdminServiceTest {
 
 
     @BeforeAll
-    public static void beforeAll() throws ChessServerException {
+    public static void beforeAll() throws ResponseException {
         dataAccess = new MemoryDataAccess();
         new AdminService(dataAccess).clear();
     }

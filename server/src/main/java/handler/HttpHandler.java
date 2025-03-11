@@ -2,7 +2,7 @@ package handler;
 
 import dataaccess.DataAccess;
 import serialize.Serializer;
-import service.ChessServerException;
+import exception.ResponseException;
 import spark.Request;
 import spark.Response;
 import spark.Route;
@@ -19,7 +19,7 @@ public abstract class HttpHandler<T> implements Route {
     }
 
     @Override
-    public Object handle(Request request, Response response) throws ChessServerException {
+    public Object handle(Request request, Response response) throws ResponseException {
         String authToken = request.headers("Authorization");
 
         T requestObject = null;
@@ -37,7 +37,7 @@ public abstract class HttpHandler<T> implements Route {
 
     protected abstract Class<T> getRequestClass();
 
-    protected abstract Object getServiceResult(DataAccess dataAccess, T request, String authtoken) throws ChessServerException;
+    protected abstract Object getServiceResult(DataAccess dataAccess, T request, String authtoken) throws ResponseException;
 
 
 }

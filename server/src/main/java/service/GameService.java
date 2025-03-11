@@ -3,6 +3,7 @@ package service;
 import chess.ChessGame;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
+import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
 import model.JoinGameRequest;
@@ -18,12 +19,12 @@ public class GameService {
     }
 
 
-    public GameData createGame(GameData request, String authToken) throws ChessServerException {
+    public GameData createGame(GameData request, String authToken) throws ResponseException {
         try {
             authorization(authToken);
 
             if (request.gameName() == null) {
-                throw new ChessServerException(ChessServerException.Reason.BAD_INPUT, "Game name cannot be null");
+                throw new ResponseException(ResponseException.Reason.BAD_INPUT, "Game name cannot be null");
             }
 
             GameData game = new GameData(0, null, null, request.gameName(), new ChessGame());
@@ -31,30 +32,30 @@ public class GameService {
 
             return game;
         } catch (DataAccessException e) {
-            throw new ChessServerException(ChessServerException.Reason.INTERNAL_ERROR, e);
+            throw new ResponseException(ResponseException.Reason.INTERNAL_ERROR, e);
         }
     }
 
 
-    public ListGamesResponse listGames(String authToken) throws ChessServerException {
+    public ListGamesResponse listGames(String authToken) throws ResponseException {
         try {
             authorization(authToken);
 
             return new ListGamesResponse(dataAccess.getGameDAO().findAllGames());
         } catch (DataAccessException e) {
-            throw new ChessServerException(ChessServerException.Reason.INTERNAL_ERROR, e);
+            throw new ResponseException(ResponseException.Reason.INTERNAL_ERROR, e);
         }
     }
 
 
-    public synchronized void joinGame(JoinGameRequest request, String authToken) throws ChessServerException {
+    public synchronized void joinGame(JoinGameRequest request, String authToken) throws ResponseException {
         try {
             GameData game = dataAccess.getGameDAO().findGame(request.gameID());
             if (game == null) {
-                throw new ChessServerException(ChessServerException.Reason.BAD_INPUT, "Game not found");
+                throw new ResponseException(ResponseException.Reason.BAD_INPUT, "Game not found");
             }
             if (request.playerColor() == null) {
-                throw new ChessServerException(ChessServerException.Reason.BAD_INPUT, "Not a valid color");
+                throw new ResponseException(ResponseException.Reason.BAD_INPUT, "Not a valid color");
             }
 
             AuthData auth = authorization(authToken);
@@ -63,7 +64,7 @@ public class GameService {
                     !game.whiteUsername().equals(auth.username()) ||
                     request.playerColor() == ChessGame.TeamColor.BLACK && game.blackUsername() != null &&
                             !game.blackUsername().equals(auth.username())) {
-                throw new ChessServerException(ChessServerException.Reason.ITEM_TAKEN, "Player color taken");
+                throw new ResponseException(ResponseException.Reason.ITEM_TAKEN, "Player color taken");
             }
 
             if (request.playerColor() == ChessGame.TeamColor.WHITE) {
@@ -75,20 +76,20 @@ public class GameService {
 
             dataAccess.getGameDAO().updateGame(game);
         } catch (DataAccessException e) {
-            throw new ChessServerException(ChessServerException.Reason.INTERNAL_ERROR, e);
+            throw new ResponseException(ResponseException.Reason.INTERNAL_ERROR, e);
         }
     }
 
 
-    private AuthData authorization(String authtoken) throws ChessServerException {
+    private AuthData authorization(String authtoken) throws ResponseException {
         try {
             AuthData auth = dataAccess.getAuthDAO().findAuth(authtoken);
             if (auth == null) {
-                throw new ChessServerException(ChessServerException.Reason.BAD_AUTH, "Unauthorized");
+                throw new ResponseException(ResponseException.Reason.BAD_AUTH, "Unauthorized");
             }
             return auth;
         } catch (DataAccessException e) {
-            throw new ChessServerException(ChessServerException.Reason.INTERNAL_ERROR, e);
+            throw new ResponseException(ResponseException.Reason.INTERNAL_ERROR, e);
         }
     }
 

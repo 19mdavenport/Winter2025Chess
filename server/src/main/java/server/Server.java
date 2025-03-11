@@ -7,7 +7,7 @@ import dataaccess.mysql.MySqlDataAccess;
 import handler.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import service.ChessServerException;
+import exception.ResponseException;
 import spark.Spark;
 
 public class Server {
@@ -36,7 +36,7 @@ public class Server {
 
         Spark.delete("/db", new ClearHandler(dataAccess));
 
-        Spark.exception(ChessServerException.class, new ChessServerExceptionHandler());
+        Spark.exception(ResponseException.class, new ChessServerExceptionHandler());
 
         Spark.awaitInitialization();
         return Spark.port();

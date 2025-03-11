@@ -3,7 +3,7 @@ package handler;
 import dataaccess.DataAccess;
 import model.AuthData;
 import model.UserData;
-import service.ChessServerException;
+import exception.ResponseException;
 import service.UserService;
 
 public class RegisterHandler extends HttpHandler<UserData> {
@@ -20,7 +20,7 @@ public class RegisterHandler extends HttpHandler<UserData> {
 
 
     @Override
-    protected AuthData getServiceResult(DataAccess dataAccess, UserData user, String authtoken) throws ChessServerException {
+    protected AuthData getServiceResult(DataAccess dataAccess, UserData user, String authtoken) throws ResponseException {
         return new UserService(dataAccess).register(user);
     }
 

@@ -2,7 +2,7 @@ package handler;
 
 import dataaccess.DataAccess;
 import service.AdminService;
-import service.ChessServerException;
+import exception.ResponseException;
 
 public class ClearHandler extends HttpHandler<Void>{
 
@@ -18,7 +18,7 @@ public class ClearHandler extends HttpHandler<Void>{
 
 
     @Override
-    protected Object getServiceResult(DataAccess dataAccess, Void request, String authtoken) throws ChessServerException {
+    protected Object getServiceResult(DataAccess dataAccess, Void request, String authtoken) throws ResponseException {
         new AdminService(dataAccess).clear();
         return null;
     }

@@ -5,6 +5,7 @@ import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import dataaccess.UserDAO;
 import dataaccess.memory.MemoryDataAccess;
+import exception.ResponseException;
 import model.AuthData;
 import model.UserData;
 import org.junit.jupiter.api.Assertions;
@@ -29,13 +30,13 @@ public class UserServiceTest {
 
 
     @BeforeEach
-    public void setUp() throws ChessServerException {
+    public void setUp() throws ResponseException {
         new AdminService(dataAccess).clear();
     }
 
 
     @Test
-    public void registerPass() throws ChessServerException, DataAccessException {
+    public void registerPass() throws ResponseException, DataAccessException {
         UserData request = new UserData("SuperUniqueusername", "SuperSecurePa$$w0rd", "noreply@byu.edu");
 
         AuthData result = new UserService(dataAccess).register(request);
@@ -54,17 +55,17 @@ public class UserServiceTest {
 
 
     @Test
-    public void registerFail() throws ChessServerException {
+    public void registerFail() throws ResponseException {
         UserData request = new UserData("SuperUniqueusername", "SuperSecurePa$$w0rd", "noreply@byu.edu");
         new UserService(dataAccess).register(request);
-        ChessServerException e = Assertions.assertThrows(ChessServerException.class,
+        ResponseException e = Assertions.assertThrows(ResponseException.class,
                 () -> new UserService(dataAccess).register(request));
-        Assertions.assertEquals(ChessServerException.Reason.ITEM_TAKEN, e.getReason());
+        Assertions.assertEquals(ResponseException.Reason.ITEM_TAKEN, e.getReason());
     }
 
 
     @Test
-    public void loginPass() throws ChessServerException, DataAccessException {
+    public void loginPass() throws ResponseException, DataAccessException {
         UserData request = new UserData("SuperUniqueusername", "SuperSecurePa$$w0rd", "noreply@byu.edu");
         UserService userService = new UserService(dataAccess);
         userService.register(request);
@@ -83,14 +84,14 @@ public class UserServiceTest {
     @Test
     public void loginFail() {
         UserData request = new UserData("SuperUniqueusername", "SuperSecurePa$$w0rd", null);
-        ChessServerException e = Assertions.assertThrows(ChessServerException.class,
+        ResponseException e = Assertions.assertThrows(ResponseException.class,
                 () -> new UserService(dataAccess).login(request));
-        Assertions.assertEquals(ChessServerException.Reason.BAD_AUTH, e.getReason());
+        Assertions.assertEquals(ResponseException.Reason.BAD_AUTH, e.getReason());
     }
 
 
     @Test
-    public void logoutPass() throws ChessServerException, DataAccessException {
+    public void logoutPass() throws ResponseException, DataAccessException {
         UserData request = new UserData("SuperUniqueusername", "SuperSecurePa$$w0rd", "noreply@byu.edu");
         UserService userService = new UserService(dataAccess);
         AuthData registerResult = userService.register(request);
@@ -104,9 +105,9 @@ public class UserServiceTest {
 
     @Test
     public void logoutFail() {
-        ChessServerException e = Assertions.assertThrows(ChessServerException.class,
+        ResponseException e = Assertions.assertThrows(ResponseException.class,
                 () -> new UserService(dataAccess).logout("Invalid token"));
-        Assertions.assertEquals(ChessServerException.Reason.BAD_AUTH, e.getReason());
+        Assertions.assertEquals(ResponseException.Reason.BAD_AUTH, e.getReason());
     }
 
 }

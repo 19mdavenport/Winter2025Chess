@@ -3,6 +3,7 @@ package service;
 import chess.ChessGame;
 import dataaccess.*;
 import dataaccess.memory.MemoryDataAccess;
+import exception.ResponseException;
 import model.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -31,7 +32,7 @@ public class GameServiceTest {
 
 
     @BeforeEach
-    public void setUp() throws ChessServerException, DataAccessException {
+    public void setUp() throws ResponseException, DataAccessException {
         new AdminService(dataAccess).clear();
 
         user = new UserData("sheila", "superSecurePa$$w0rd", "noreply@byu.edu");
@@ -44,7 +45,7 @@ public class GameServiceTest {
 
 
     @Test
-    public void createGamePass() throws ChessServerException, DataAccessException {
+    public void createGamePass() throws ResponseException, DataAccessException {
         GameData request = new GameData(0, null, null, "Super Exciting Chess Game!", new ChessGame());
         GameData result = new GameService(dataAccess).createGame(request, token.authToken());
         Assertions.assertTrue(result.gameID() >= 0);
@@ -60,14 +61,14 @@ public class GameServiceTest {
     @Test
     public void createGameFail() {
         GameData request = new GameData(0, null, null, "Super Exciting Chess Game Failure!", new ChessGame());
-        ChessServerException e = Assertions.assertThrows(ChessServerException.class,
+        ResponseException e = Assertions.assertThrows(ResponseException.class,
                 () -> new GameService(dataAccess).createGame(request, null));
-        Assertions.assertEquals(ChessServerException.Reason.BAD_AUTH, e.getReason());
+        Assertions.assertEquals(ResponseException.Reason.BAD_AUTH, e.getReason());
     }
 
 
     @Test
-    public void listGamesPass() throws ChessServerException {
+    public void listGamesPass() throws ResponseException {
 
 
         ListGamesResponse result = new GameService(dataAccess).listGames(token.authToken());
@@ -83,9 +84,9 @@ public class GameServiceTest {
 
     @Test
     public void listGamesFail() {
-        ChessServerException e = Assertions.assertThrows(ChessServerException.class,
+        ResponseException e = Assertions.assertThrows(ResponseException.class,
                 () -> new GameService(dataAccess).listGames(UUID.randomUUID().toString()));
-        Assertions.assertEquals(ChessServerException.Reason.BAD_AUTH, e.getReason());
+        Assertions.assertEquals(ResponseException.Reason.BAD_AUTH, e.getReason());
     }
 
 
@@ -105,9 +106,9 @@ public class GameServiceTest {
     @Test
     public void joinGameFail() {
         JoinGameRequest request = new JoinGameRequest(ChessGame.TeamColor.WHITE, -1);
-        ChessServerException e = Assertions.assertThrows(ChessServerException.class,
+        ResponseException e = Assertions.assertThrows(ResponseException.class,
                 () -> new GameService(dataAccess).joinGame(request, token.authToken()));
-        Assertions.assertEquals(ChessServerException.Reason.BAD_INPUT, e.getReason());
+        Assertions.assertEquals(ResponseException.Reason.BAD_INPUT, e.getReason());
     }
 
 }

@@ -1,7 +1,7 @@
 package handler;
 
 import dataaccess.DataAccess;
-import service.ChessServerException;
+import exception.ResponseException;
 import service.GameService;
 
 public class ListGamesHandler extends HttpHandler<Void>{
@@ -18,7 +18,7 @@ public class ListGamesHandler extends HttpHandler<Void>{
 
 
     @Override
-    protected Object getServiceResult(DataAccess dataAccess, Void request, String authtoken) throws ChessServerException {
+    protected Object getServiceResult(DataAccess dataAccess, Void request, String authtoken) throws ResponseException {
         return new GameService(dataAccess).listGames(authtoken);
     }
 

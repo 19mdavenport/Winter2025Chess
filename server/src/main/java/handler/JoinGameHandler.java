@@ -2,7 +2,7 @@ package handler;
 
 import dataaccess.DataAccess;
 import model.JoinGameRequest;
-import service.ChessServerException;
+import exception.ResponseException;
 import service.GameService;
 
 public class JoinGameHandler extends HttpHandler<JoinGameRequest> {
@@ -20,7 +20,7 @@ public class JoinGameHandler extends HttpHandler<JoinGameRequest> {
 
     @Override
     protected Object getServiceResult(DataAccess dataAccess, JoinGameRequest request, String authtoken)
-            throws ChessServerException {
+            throws ResponseException {
         new GameService(dataAccess).joinGame(request, authtoken);
         return null;
     }

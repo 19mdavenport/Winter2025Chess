@@ -2,7 +2,7 @@ package handler;
 
 import dataaccess.DataAccess;
 import model.GameData;
-import service.ChessServerException;
+import exception.ResponseException;
 import service.GameService;
 
 public class CreateGameHandler extends HttpHandler<GameData> {
@@ -19,7 +19,7 @@ public class CreateGameHandler extends HttpHandler<GameData> {
 
 
     @Override
-    protected Object getServiceResult(DataAccess dataAccess, GameData request, String authtoken) throws ChessServerException {
+    protected Object getServiceResult(DataAccess dataAccess, GameData request, String authtoken) throws ResponseException {
         return new GameService(dataAccess).createGame(request, authtoken);
     }
 
