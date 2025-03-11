@@ -77,7 +77,9 @@ public abstract class MySqlDAO {
 
     protected <T> ResultSetParser<T> nullSafeParseSingle(ResultSetParser<T> delegate) {
         return rs -> {
-            if (!rs.next()) return null;
+            if (!rs.next()) {
+                return null;
+            }
             return delegate.parseResultSet(rs);
         };
     }
