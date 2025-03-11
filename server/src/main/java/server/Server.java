@@ -1,25 +1,26 @@
 package server;
 
 import dataaccess.DataAccess;
+import dataaccess.DataAccessException;
 import dataaccess.memory.MemoryDataAccess;
+import dataaccess.mysql.MySqlDataAccess;
 import handler.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import service.ChessServerException;
 import spark.Spark;
 
-import java.net.HttpURLConnection;
-
 public class Server {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
 
     public int run(int desiredPort) {
         Spark.port(desiredPort);
 
         Spark.staticFiles.location("web");
 
-        DataAccess dataAccess = new MemoryDataAccess();
+        DataAccess dataAccess = createDataAccess();
 
         // Register your endpoints and handle exceptions here.
-        Spark.get("/costume", (request, response) ->
-                Spark.halt(403, "<html><body><p>You are not authorized to view this costume</p></body></html>"));
         Spark.post("/user", new RegisterHandler(dataAccess));
 
         Spark.path("/session", () -> {
@@ -44,5 +45,14 @@ public class Server {
     public void stop() {
         Spark.stop();
         Spark.awaitStop();
+    }
+
+    private DataAccess createDataAccess() {
+        try {
+            return new MySqlDataAccess();
+        } catch (DataAccessException e) {
+            LOGGER.warn("Couldn't instantiate MySQL storage, falling back on memory storage:\n{}", e.getMessage(), e);
+            return new MemoryDataAccess();
+        }
     }
 }

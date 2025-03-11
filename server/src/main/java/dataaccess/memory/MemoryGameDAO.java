@@ -36,7 +36,7 @@ public class MemoryGameDAO implements GameDAO {
         while (games.get(gameID) != null) {
             gameID++;
         }
-        game = new GameData(gameID, game.whiteUsername(), game.blackUsername(), game.gameName(), game.game());
+        game = game.withID(gameID);
         games.put(gameID, game);
         return game;
     }

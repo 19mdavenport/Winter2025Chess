@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class UserServiceTest {
 
@@ -48,8 +49,7 @@ public class UserServiceTest {
         UserData foundUser = userDAO.getUser(request.username());
         Assertions.assertEquals(request.username(), foundUser.username());
         Assertions.assertEquals(request.email(), foundUser.email());
-//        Assertions.assertTrue(BCrypt.checkpw(request.password(), foundUser.password()));
-        Assertions.assertEquals(request.password(), foundUser.password());
+        Assertions.assertTrue(BCrypt.checkpw(request.password(), foundUser.password()));
     }
 
 

@@ -67,10 +67,10 @@ public class GameService {
             }
 
             if (request.playerColor() == ChessGame.TeamColor.WHITE) {
-                game = new GameData(game.gameID(), auth.username(), game.blackUsername(), game.gameName(), game.game());
+                game = game.withWhiteUsername(auth.username());
             }
             if (request.playerColor() == ChessGame.TeamColor.BLACK) {
-                game = new GameData(game.gameID(), game.whiteUsername(), auth.username(), game.gameName(), game.game());
+                game = game.withBlackUsername(auth.username());
             }
 
             dataAccess.getGameDAO().updateGame(game);

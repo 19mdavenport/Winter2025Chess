@@ -1,7 +1,5 @@
 package service;
 
-import java.security.PrivilegedActionException;
-
 /**
  * Exception for any server-specific irregularity during execution
  */
