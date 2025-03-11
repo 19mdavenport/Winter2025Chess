@@ -1,5 +1,6 @@
 package handler;
 
+import model.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import serialize.Serializer;
@@ -7,8 +8,6 @@ import service.ChessServerException;
 import spark.ExceptionHandler;
 import spark.Request;
 import spark.Response;
-
-import java.util.Map;
 
 public class ChessServerExceptionHandler implements ExceptionHandler<ChessServerException> {
 
@@ -23,6 +22,6 @@ public class ChessServerExceptionHandler implements ExceptionHandler<ChessServer
             case ITEM_TAKEN -> 403;
             case INTERNAL_ERROR -> 500;
         });
-        response.body(Serializer.serialize(Map.of("message", e.getMessage())));
+        response.body(Serializer.serialize(new ErrorResponse("Error: " + e.getMessage())));
     }
 }

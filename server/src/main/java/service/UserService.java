@@ -19,12 +19,12 @@ public class UserService {
     public AuthData register(UserData user) throws ChessServerException {
         try {
             if (user == null || user.username() == null || user.password() == null || user.email() == null) {
-                throw new ChessServerException(ChessServerException.Reason.BAD_INPUT, "Error: Username, Password, and email must not be null");
+                throw new ChessServerException(ChessServerException.Reason.BAD_INPUT, "Username, Password, and email must not be null");
             }
 
 
             if (dataAccess.getUserDAO().getUser(user.username()) != null) {
-                throw new ChessServerException(ChessServerException.Reason.ITEM_TAKEN, "Error: username taken");
+                throw new ChessServerException(ChessServerException.Reason.ITEM_TAKEN, "username taken");
             }
 
             String hashedPassword = BCrypt.hashpw(user.password(), BCrypt.gensalt());
@@ -46,7 +46,7 @@ public class UserService {
         try {
             UserData foundUser = dataAccess.getUserDAO().getUser(user.username());
             if (foundUser == null || !BCrypt.checkpw(user.password(), foundUser.password())) {
-                throw new ChessServerException(ChessServerException.Reason.BAD_AUTH, "Error: Incorrect username or password");
+                throw new ChessServerException(ChessServerException.Reason.BAD_AUTH, "Incorrect username or password");
             }
 
             AuthData auth = AuthData.getNewAuthData(user.username());
@@ -63,7 +63,7 @@ public class UserService {
         try {
             AuthData delete = dataAccess.getAuthDAO().findAuth(authtoken);
             if (delete == null) {
-                throw new ChessServerException(ChessServerException.Reason.BAD_AUTH, "Error: Unauthorized");
+                throw new ChessServerException(ChessServerException.Reason.BAD_AUTH, "Unauthorized");
             }
             dataAccess.getAuthDAO().deleteAuth(authtoken);
         } catch (DataAccessException e) {
