@@ -1,8 +1,10 @@
 package ui;
 
-import java.util.Collection;
-import java.util.function.Function;
+import java.util.List;
 
-public record UserInterfaceOption(Collection<String> invokeOptions, String description,
-                                  Function<String[], UserInterfaceCommandOutput> callback) {
+public record UserInterfaceOption(
+        List<String> invokeOptions,
+        String description,
+        List<CommandArgument> arguments,
+        CommandCallback callback) {
 }
