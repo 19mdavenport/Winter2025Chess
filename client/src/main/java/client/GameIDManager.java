@@ -57,6 +57,9 @@ public class GameIDManager implements ServerFacade {
 
     @Override
     public void joinGame(JoinGameRequest request) throws ResponseException {
+        if(localToServer.isEmpty()) {
+            listGames();
+        }
         currentServerId = getServerId(request.gameID());
         delegate.joinGame(new JoinGameRequest(request.playerColor(), currentServerId));
     }
@@ -70,7 +73,7 @@ public class GameIDManager implements ServerFacade {
         if(localToServer.containsKey(localId)) {
             return localToServer.get(localId);
         } else {
-            throw new IllegalArgumentException(localId + " not a valid game number");
+            throw new IllegalArgumentException(localId + " is not a valid game number");
         }
     }
 

@@ -34,7 +34,7 @@ public class Repl {
             out.print(current.getPromptText());
             out.print(" >> ");
 
-            String command = in.nextLine();
+            String command = in.nextLine().trim();
             executeCommand(command, current.getOptions());
 
             out.println();
@@ -109,7 +109,7 @@ public class Repl {
                 try {
                     argValue = getArgValue(value, argument.argType());
                 } catch (IllegalArgumentException e) {
-                    printAsError(value + " not a valid value for " + argument.argName() + " argument. Enter empty value to quit");
+                    printAsError(value + " is not a valid value for " + argument.argName() + " argument. Enter empty value to quit\n");
                 }
             }
 
