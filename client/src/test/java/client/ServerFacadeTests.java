@@ -1,13 +1,17 @@
 package client;
 
 import chess.ChessGame;
-import model.*;
+import exception.ResponseException;
+import model.AuthData;
+import model.JoinGameRequest;
+import model.ListGamesResponse;
+import model.UserData;
 import org.junit.jupiter.api.*;
 import server.Server;
-import exception.ResponseException;
+import web.ServerFacade;
 import web.ServerFacadeImpl;
 
-import java.util.Random;
+import java.util.UUID;
 
 
 public class ServerFacadeTests {
@@ -17,7 +21,7 @@ public class ServerFacadeTests {
 
     private static Server server;
 
-    private static ServerFacadeImpl facade;
+    private static ServerFacade facade;
 
     private static String username;
 
@@ -39,7 +43,7 @@ public class ServerFacadeTests {
 
     @BeforeEach
     public void register() throws ResponseException {
-        username = "user" + new Random().nextInt(9999);
+        username = "user" + UUID.randomUUID();
         UserData request = new UserData(username, PASSWORD, EMAIL);
         authToken = facade.register(request).authToken();
     }
@@ -49,7 +53,7 @@ public class ServerFacadeTests {
     public void registerPass() throws ResponseException {
         String otherUsername = username;
         while (username.equals(otherUsername)) {
-            otherUsername = "user" + new Random().nextInt(9999);
+            otherUsername = "user" + UUID.randomUUID();
         }
 
         UserData request = new UserData(otherUsername, PASSWORD, EMAIL);
@@ -65,7 +69,8 @@ public class ServerFacadeTests {
     @Test
     public void registerFail() {
         UserData request = new UserData(username, PASSWORD, EMAIL);
-        Assertions.assertThrows(ResponseException.class, () -> facade.register(request));
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> facade.register(request));
+        Assertions.assertEquals(ResponseException.Reason.ITEM_TAKEN, e.getReason());
     }
 
 
@@ -84,56 +89,55 @@ public class ServerFacadeTests {
     public void loginFail() {
         String otherUsername = username;
         while (username.equals(otherUsername)) {
-            otherUsername = "user" + new Random().nextInt(9999);
+            otherUsername = "user" + UUID.randomUUID();
         }
 
         UserData request = new UserData(otherUsername, PASSWORD, null);
-        Assertions.assertThrows(ResponseException.class, () -> facade.login(request));
-
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> facade.login(request));
+        Assertions.assertEquals(ResponseException.Reason.BAD_AUTH, e.getReason());
     }
 
 
     @Test
     public void logoutPass() throws ResponseException {
         facade.logout();
-        Assertions.assertThrows(ResponseException.class, () -> facade.listGames());
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> facade.listGames());
+        Assertions.assertEquals(ResponseException.Reason.BAD_AUTH, e.getReason());
     }
 
 
     @Test
     public void logoutFail() throws ResponseException {
         facade.logout();
-        Assertions.assertThrows(ResponseException.class, () -> facade.logout());
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> facade.logout());
+        Assertions.assertEquals(ResponseException.Reason.BAD_AUTH, e.getReason());
     }
 
 
     @Test
     public void createGamePass() throws ResponseException {
-        String gameName = "game" + new Random().nextInt(9999);
-        GameData request = new GameData(0, null, null, gameName, null);
-        GameData result = facade.createGame(request);
+        String gameName = "game" + UUID.randomUUID();
+        Integer result = facade.createGame(gameName);
 
         Assertions.assertNotNull(result);
 
-        Assertions.assertEquals(request.gameName(), result.gameName());
-        Assertions.assertTrue(result.gameID() > 0);
+        Assertions.assertTrue(result > 0);
     }
 
 
     @Test
     public void createGameFail() {
-        GameData request = new GameData(0, null, null, null, null);
-        Assertions.assertThrows(ResponseException.class, () -> facade.createGame(request));
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> facade.createGame(null));
+        Assertions.assertEquals(ResponseException.Reason.BAD_INPUT, e.getReason());
     }
 
 
     @Test
     public void joinGamePass() throws ResponseException {
-        String gameName = "game" + new Random().nextInt(9999);
-        GameData cGRequest = new GameData(0, null, null, gameName, null);
-        GameData cGResult = facade.createGame(cGRequest);
+        String gameName = "game" + UUID.randomUUID();
+        Integer cGResult = facade.createGame(gameName);
 
-        JoinGameRequest request = new JoinGameRequest(ChessGame.TeamColor.BLACK, cGResult.gameID());
+        JoinGameRequest request = new JoinGameRequest(ChessGame.TeamColor.BLACK, cGResult);
         Assertions.assertDoesNotThrow(() -> facade.joinGame(request));
     }
 
@@ -141,27 +145,29 @@ public class ServerFacadeTests {
     @Test
     public void joinGameFail() {
         JoinGameRequest request = new JoinGameRequest(ChessGame.TeamColor.WHITE, 123456789);
-        Assertions.assertThrows(ResponseException.class, () -> facade.joinGame(request));
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> facade.joinGame(request));
+        Assertions.assertEquals(ResponseException.Reason.BAD_INPUT, e.getReason());
     }
 
 
     @Test
     public void listGamesPass() throws ResponseException {
-        String gameName = "game" + new Random().nextInt(9999);
-        GameData request = new GameData(0, null, null, gameName, null);
-        facade.createGame(request);
+        String gameName = "game" + UUID.randomUUID();
+        int gameID = facade.createGame(gameName);
         ListGamesResponse result = facade.listGames();
 
         Assertions.assertNotNull(result);
 
         Assertions.assertFalse(result.games().isEmpty());
+        Assertions.assertTrue(result.games().stream().anyMatch(gameData -> gameData.gameID() == gameID));
     }
 
 
     @Test
     public void listGamesFail() throws ResponseException {
         facade.logout();
-        Assertions.assertThrows(ResponseException.class, () -> facade.listGames());
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> facade.listGames());
+        Assertions.assertEquals(ResponseException.Reason.BAD_AUTH, e.getReason());
     }
 
 }
