@@ -1,10 +1,11 @@
+import client.GameIDManager;
 import client.PreLoginUIState;
 import ui.Repl;
-import web.ServerFacade;
+import web.ServerFacadeImpl;
 
 public class Main {
     public static void main(String[] args) {
-        var serverFacade = new ServerFacade(getUrl(args));
+        var serverFacade = new GameIDManager(new ServerFacadeImpl(getUrl(args)));
         var firstState = new PreLoginUIState(serverFacade);
         new Repl().run(firstState);
     }

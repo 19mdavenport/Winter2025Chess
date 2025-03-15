@@ -10,7 +10,6 @@ public class Repl {
 
     private final PrintStream out = System.out;
     private final Scanner in = new Scanner(System.in);
-
     private final Stack<UserInterfaceState> stateStack = new Stack<>();
 
     public void run(UserInterfaceState initialState) {
@@ -18,24 +17,25 @@ public class Repl {
 
         stateStack.push(initialState);
         UserInterfaceState current = initialState;
-        Collection<UserInterfaceOption> currentOptions = current.getOptions();
-        String currentPrompt = current.getPromptText();
+        boolean previousSingleUse = false;
 
-        printOptions(currentOptions);
-        out.println();
+        printOptions(current.getOptions());
+
 
         while (!stateStack.isEmpty()) {
             if (stateStack.peek() != current) {
                 current = stateStack.peek();
-                currentOptions = current.getOptions();
-                currentPrompt = current.getPromptText();
-                printOptions(currentOptions);
+                if(!previousSingleUse && !current.isSingleUse()) {
+                    printOptions(current.getOptions());
+                }
+                previousSingleUse = current.isSingleUse();
+
             }
-            out.print(currentPrompt);
+            out.print(current.getPromptText());
             out.print(" >> ");
 
             String command = in.nextLine();
-            executeCommand(command, currentOptions);
+            executeCommand(command, current.getOptions());
 
             out.println();
         }
@@ -45,22 +45,26 @@ public class Repl {
 
     private void printOptions(Collection<UserInterfaceOption> options) {
         StringBuilder builder = new StringBuilder("Command Options:\n");
-        options = new ArrayList<>(options);
-        options.add(HELP_OPTION);
         for (UserInterfaceOption option : options) {
-            option.invokeOptions().stream()
-                    .sorted(Comparator.comparingInt(String::length).thenComparing(Comparator.naturalOrder()))
-                    .forEach((invokeOption) -> builder.append('\'').append(invokeOption).append("', "));
-            builder.delete(builder.length() - 2, builder.length());
-            builder.append(" - ").append(option.description()).append("\n");
+            helpOption(option, builder);
         }
-        out.print(builder);
+        helpOption(HELP_OPTION, builder);
+        out.println(builder);
+    }
+
+    private void helpOption(UserInterfaceOption option, StringBuilder builder) {
+        option.invokeOptions().stream().sorted()
+                .forEach((invokeOption) -> builder.append('\'').append(EscapeSequences.SET_TEXT_COLOR_BLUE)
+                        .append(invokeOption).append(EscapeSequences.RESET_TEXT_COLOR).append("', "));
+        builder.delete(builder.length() - 2, builder.length());
+        builder.append(" - ").append(option.description()).append("\n");
     }
 
     private void executeCommand(String command, Collection<UserInterfaceOption> currentOptions) {
         boolean found = false;
         for (UserInterfaceOption option : currentOptions) {
             if (option.invokeOptions().contains(command)) {
+                found = true;
                 Object[] args = readArgs(option.arguments());
                 if (args == null) {
                     break;
@@ -70,11 +74,10 @@ public class Repl {
                 try {
                     commandOutput = option.callback().execute(args);
                 } catch (Throwable t) {
-                    commandOutput = new UserInterfaceCommandOutput(false, t.getMessage());
+                    commandOutput = UserInterfaceCommandOutput.failure(t.getMessage());
                 }
                 handleCommandOutput(commandOutput);
 
-                found = true;
                 break;
             }
         }
@@ -127,7 +130,13 @@ public class Repl {
             }
         }
         if (type.isEnum()) {
-            return (T) Enum.valueOf((Class<? extends Enum>) type, value);
+//            return (T) Enum.valueOf((Class<? extends Enum>) type, value.toUpperCase());
+            Optional<T> opt = Arrays.stream(type.getEnumConstants()).filter(t -> ((Enum<?>) t).name().equalsIgnoreCase(value)).findFirst();
+            if (opt.isPresent()) {
+                return opt.get();
+            } else {
+                throw new IllegalArgumentException(value);
+            }
         }
         throw new IllegalStateException(value + " is not a valid argument type");
     }

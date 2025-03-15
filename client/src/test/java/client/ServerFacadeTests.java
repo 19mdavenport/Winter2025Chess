@@ -5,7 +5,7 @@ import model.*;
 import org.junit.jupiter.api.*;
 import server.Server;
 import exception.ResponseException;
-import web.ServerFacade;
+import web.ServerFacadeImpl;
 
 import java.util.Random;
 
@@ -17,7 +17,7 @@ public class ServerFacadeTests {
 
     private static Server server;
 
-    private static ServerFacade facade;
+    private static ServerFacadeImpl facade;
 
     private static String username;
 
@@ -28,7 +28,7 @@ public class ServerFacadeTests {
         server = new Server();
         var port = server.run(0);
         System.out.println("Started test HTTP server on " + port);
-        facade = new ServerFacade("http://localhost:" + port);
+        facade = new ServerFacadeImpl("http://localhost:" + port);
     }
 
     @AfterAll
