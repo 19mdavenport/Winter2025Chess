@@ -166,8 +166,8 @@ public class ServerFacadeTests {
     @Test
     public void listGamesFail() throws ResponseException {
         facade.logout();
-        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> facade.listGames());
-        Assertions.assertEquals(ResponseException.Reason.BAD_AUTH, e.getReason());
+        ResponseException ex = Assertions.assertThrows(ResponseException.class, () -> facade.listGames());
+        Assertions.assertEquals(ResponseException.Reason.BAD_AUTH, ex.getReason());
     }
 
 }
