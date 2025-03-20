@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import exception.ResponseException;
 import spark.Spark;
+import websocket.WebSocketHandler;
 
 public class Server {
     private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
@@ -19,6 +20,8 @@ public class Server {
         Spark.staticFiles.location("web");
 
         DataAccess dataAccess = createDataAccess();
+
+        Spark.webSocket("/ws", new WebSocketHandler(dataAccess));
 
         // Register your endpoints and handle exceptions here.
         Spark.post("/user", new RegisterHandler(dataAccess));
