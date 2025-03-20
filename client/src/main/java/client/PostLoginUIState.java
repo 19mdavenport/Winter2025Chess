@@ -10,6 +10,7 @@ import web.ServerFacade;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 public class PostLoginUIState extends UserInterfaceState {
@@ -65,6 +66,7 @@ public class PostLoginUIState extends UserInterfaceState {
                     new NoGamesCreateGameUIState());
         }
         List<GameData> orderedGames = new ArrayList<>(listResponse.games());
+        orderedGames.sort(Comparator.comparingInt(GameData::gameID));
 
         int longestName = 1;
         int longestWhiteUsername = 4;

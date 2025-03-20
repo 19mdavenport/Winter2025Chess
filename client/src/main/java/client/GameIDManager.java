@@ -4,10 +4,7 @@ import exception.ResponseException;
 import model.*;
 import web.ServerFacade;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class GameIDManager implements ServerFacade {
     private final Map<Integer, Integer> serverToLocal = new HashMap<>();
@@ -43,6 +40,7 @@ public class GameIDManager implements ServerFacade {
     public ListGamesResponse listGames() throws ResponseException {
         ListGamesResponse serverGames = delegate.listGames();
         List<GameData> outGames = new ArrayList<>(serverGames.games());
+        outGames.sort(Comparator.comparingInt(GameData::gameID));
         for (int i = 0, outGamesSize = outGames.size(); i < outGamesSize; i++) {
             GameData game = outGames.get(i);
             int serverId = game.gameID();
