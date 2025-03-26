@@ -1,8 +1,10 @@
 package client;
 
+import chess.ChessMove;
 import exception.ResponseException;
 import model.*;
 import web.ServerFacade;
+import web.WebsocketObserver;
 
 import java.util.*;
 
@@ -10,7 +12,6 @@ public class GameIDManager implements ServerFacade {
     private final Map<Integer, Integer> serverToLocal = new HashMap<>();
     private final Map<Integer, Integer> localToServer = new HashMap<>();
     private final ServerFacade delegate;
-    private Integer currentServerId;
 
     public GameIDManager(ServerFacade delegate) {
         this.delegate = delegate;
@@ -54,17 +55,31 @@ public class GameIDManager implements ServerFacade {
     }
 
     @Override
-    public void joinGame(JoinGameRequest request) throws ResponseException {
+    public void joinGame(JoinGameRequest request, WebsocketObserver observer) throws ResponseException {
         if(localToServer.isEmpty()) {
             listGames();
         }
-        currentServerId = getServerId(request.gameID());
-        delegate.joinGame(new JoinGameRequest(request.playerColor(), currentServerId));
+        delegate.joinGame(new JoinGameRequest(request.playerColor(), getServerId(request.gameID())), observer);
     }
 
     @Override
-    public void observeGame(int localId) {
-        currentServerId = getServerId(localId);
+    public void observeGame(int localId, WebsocketObserver observer) throws ResponseException {
+        delegate.observeGame(getServerId(localId), observer);
+    }
+
+    @Override
+    public void makeMove(ChessMove move) throws ResponseException {
+        delegate.makeMove(move);
+    }
+
+    @Override
+    public void leave() throws ResponseException {
+        delegate.leave();
+    }
+
+    @Override
+    public void resign() throws ResponseException {
+        delegate.resign();
     }
 
     private int getServerId(int localId) {

@@ -32,15 +32,15 @@ public class PostLoginUIState extends UserInterfaceState {
                         List.of(), this::logout),
                 new UserInterfaceOption(List.of("c", "create", "new"),
                         "create a new game of chess",
-                        List.of(new CommandArgument("Name of game", String.class)), this::create),
+                        List.of(new CommandArgument<>("Name of game", String.class)), this::create),
                 new UserInterfaceOption(List.of("l", "list", "games"), "view current games", List.of(), this::list),
                 new UserInterfaceOption(List.of("p", "play", "j", "join"),
                         "join a game of chess",
-                        List.of(new CommandArgument("Game number", Integer.class),
-                                new CommandArgument("Color [white/black] ", ChessGame.TeamColor.class)), this::play),
+                        List.of(new CommandArgument<>("Game number", Integer.class),
+                                new CommandArgument<>("Color [white/black] ", ChessGame.TeamColor.class)), this::play),
                 new UserInterfaceOption(List.of("o", "observe", "w", "watch"),
                         "watch a game of chess",
-                        List.of(new CommandArgument("Game number", Integer.class)), this::observe)
+                        List.of(new CommandArgument<>("Game number", Integer.class)), this::observe)
 
         );
     }
@@ -114,19 +114,15 @@ public class PostLoginUIState extends UserInterfaceState {
 
     private UserInterfaceCommandOutput play(Object[] params) throws ResponseException {
         ChessGame.TeamColor perspective = (ChessGame.TeamColor) params[1];
-        server.joinGame(new JoinGameRequest(perspective, (Integer) params[0]));
-        BoardPrinter printer = new BoardPrinter(perspective);
-        printer.setCurrentGame(new ChessGame());
-        printer.printGame();
-        return UserInterfaceCommandOutput.success("Successfully joined the game.");
+        GameUIState next = new GameUIState(true, server, new BoardPrinter(perspective));
+        server.joinGame(new JoinGameRequest(perspective, (Integer) params[0]), next);
+        return UserInterfaceCommandOutput.newState("", next);
     }
 
-    private UserInterfaceCommandOutput observe(Object[] params) {
-        server.observeGame((Integer) params[0]);
-        BoardPrinter printer = new BoardPrinter(ChessGame.TeamColor.WHITE);
-        printer.setCurrentGame(new ChessGame());
-        printer.printGame();
-        return UserInterfaceCommandOutput.success("Observing game . . .");
+    private UserInterfaceCommandOutput observe(Object[] params) throws ResponseException {
+        GameUIState next = new GameUIState(false, server, new BoardPrinter(ChessGame.TeamColor.WHITE));
+        server.observeGame((int) params[0], next);
+        return UserInterfaceCommandOutput.newState("", next);
     }
 
     private class NoGamesCreateGameUIState extends SingleUseUIState {
@@ -139,7 +135,7 @@ public class PostLoginUIState extends UserInterfaceState {
         protected Collection<UserInterfaceOption> createSingleUseOptions() {
             return List.of(
                     new UserInterfaceOption(List.of("y", "yes"), "create a new game of chess",
-                            List.of(new CommandArgument("name of game", String.class)), PostLoginUIState.this::create),
+                            List.of(new CommandArgument<>("name of game", String.class)), PostLoginUIState.this::create),
                     new UserInterfaceOption(List.of("n", "no"), "do not create new game", List.of(),
                             (args) -> UserInterfaceCommandOutput.popState("Did not create a new game."))
 

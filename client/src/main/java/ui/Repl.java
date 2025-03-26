@@ -1,5 +1,7 @@
 package ui;
 
+import chess.ChessPosition;
+
 import java.io.PrintStream;
 import java.util.*;
 import java.util.function.Consumer;
@@ -25,7 +27,7 @@ public class Repl {
         while (!stateStack.isEmpty()) {
             if (stateStack.peek() != current) {
                 current = stateStack.peek();
-                if(!previousSingleUse && !current.isSingleUse()) {
+                if (!previousSingleUse && !current.isSingleUse()) {
                     printOptions(current.getOptions());
                 }
                 previousSingleUse = current.isSingleUse();
@@ -92,24 +94,26 @@ public class Repl {
         }
     }
 
-    private Object[] readArgs(List<CommandArgument> arguments) {
+    private Object[] readArgs(List<CommandArgument<?>> arguments) {
         Object[] ret = new Object[arguments.size()];
         for (int i = 0; i < arguments.size(); i++) {
-            CommandArgument argument = arguments.get(i);
-            Object argValue = null;
+            CommandArgument<?> argument = arguments.get(i);
+            Object argValue = argument.defaultValue();
 
-            while (argValue == null) {
-                out.print("\t" + argument.argName() + ": ");
+            if (argument.isRequired().test(ret)) {
+                while (argValue == argument.defaultValue()) {
+                    out.print("\t" + argument.argName() + ": ");
 
-                String value = in.nextLine();
-                if (value.isBlank()) {
-                    return null;
-                }
+                    String value = in.nextLine();
+                    if (value.isBlank()) {
+                        return null;
+                    }
 
-                try {
-                    argValue = getArgValue(value, argument.argType());
-                } catch (IllegalArgumentException e) {
-                    printAsError(value + " is not a valid value for " + argument.argName() + " argument. Enter empty value to quit\n");
+                    try {
+                        argValue = getArgValue(value, argument.argType());
+                    } catch (IllegalArgumentException e) {
+                        printAsError(value + " is not a valid value for " + argument.argName() + " argument. Enter empty value to quit\n");
+                    }
                 }
             }
 
@@ -130,11 +134,22 @@ public class Repl {
             }
         }
         if (type.isEnum()) {
-//            return (T) Enum.valueOf((Class<? extends Enum>) type, value.toUpperCase());
             Optional<T> opt = Arrays.stream(type.getEnumConstants()).filter(t -> ((Enum<?>) t).name().equalsIgnoreCase(value)).findFirst();
             if (opt.isPresent()) {
                 return opt.get();
             } else {
+                throw new IllegalArgumentException(value);
+            }
+        }
+        if (type.isAssignableFrom(ChessPosition.class)) {
+            if (value.length() != 2) {
+                throw new IllegalArgumentException(value);
+            }
+            try {
+                int row = Integer.parseInt(value.substring(1, 2));
+                int col = value.charAt(0) - 96;
+                return type.cast(new ChessPosition(row, col));
+            } catch (NumberFormatException e) {
                 throw new IllegalArgumentException(value);
             }
         }

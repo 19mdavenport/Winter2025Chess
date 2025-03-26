@@ -31,13 +31,12 @@ public class BoardPrinter {
 
     public void printGame() {
         printGame(new HashSet<>(), new HashSet<>());
-        if(false) {
-            printNewGame(currentGame);
-            highlightMoves(new ChessPosition(5, 5));
-        }
     }
 
     public void printNewGame(ChessGame newGame) {
+        if(currentGame == null) {
+            currentGame = newGame;
+        }
         Collection<ChessPosition> differences = determineDifferences(newGame, currentGame);
         setCurrentGame(newGame);
         printGame(new HashSet<>(), differences);

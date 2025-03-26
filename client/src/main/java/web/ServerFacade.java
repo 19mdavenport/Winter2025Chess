@@ -1,5 +1,6 @@
 package web;
 
+import chess.ChessMove;
 import exception.ResponseException;
 import model.*;
 
@@ -9,6 +10,10 @@ public interface ServerFacade {
     void logout() throws ResponseException;
     Integer createGame(String gameName) throws ResponseException;
     ListGamesResponse listGames() throws ResponseException;
-    void joinGame(JoinGameRequest request) throws ResponseException;
-    void observeGame(int gameID);
+    void joinGame(JoinGameRequest request, WebsocketObserver observer) throws ResponseException;
+    void observeGame(int gameID, WebsocketObserver observer) throws ResponseException;
+
+    void makeMove(ChessMove move) throws ResponseException;
+    void leave() throws ResponseException;
+    void resign() throws ResponseException;
 }

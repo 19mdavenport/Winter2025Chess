@@ -1,7 +1,6 @@
 package ui;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public abstract class SingleUseUIState extends UserInterfaceState {
@@ -25,6 +24,6 @@ public abstract class SingleUseUIState extends UserInterfaceState {
     }
 
     private static UserInterfaceCommandOutput modifyOutput(UserInterfaceCommandOutput output) {
-        return UserInterfaceCommandOutput.popState(output.output());
+        return new UserInterfaceCommandOutput(output.success(), output.output(), null, true);
     }
 }

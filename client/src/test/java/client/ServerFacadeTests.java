@@ -138,14 +138,14 @@ public class ServerFacadeTests {
         Integer cGResult = facade.createGame(gameName);
 
         JoinGameRequest request = new JoinGameRequest(ChessGame.TeamColor.BLACK, cGResult);
-        Assertions.assertDoesNotThrow(() -> facade.joinGame(request));
+        Assertions.assertDoesNotThrow(() -> facade.joinGame(request, null));
     }
 
 
     @Test
     public void joinGameFail() {
         JoinGameRequest request = new JoinGameRequest(ChessGame.TeamColor.WHITE, 123456789);
-        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> facade.joinGame(request));
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> facade.joinGame(request, null));
         Assertions.assertEquals(ResponseException.Reason.BAD_INPUT, e.getReason());
     }
 
