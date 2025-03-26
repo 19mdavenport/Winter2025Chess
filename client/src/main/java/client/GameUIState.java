@@ -49,9 +49,6 @@ public class GameUIState extends UserInterfaceState implements WebsocketObserver
 
         options.add(new UserInterfaceOption(List.of("r", "redraw"), "Redraw Chess Board",
                 List.of(), (args) -> redraw()));
-        options.add(new UserInterfaceOption(List.of("c", "color"), "Change color scheme",
-                List.of(new CommandArgument<>("Scheme number 1-" + ChessBoardColorScheme.COLOR_SCHEMES.size(), Integer.class)),
-                this::chooseColor));
 
         if (isPlayer) {
             options.add(new UserInterfaceOption(List.of("res", "resign"), "Resign from game",
@@ -60,6 +57,14 @@ public class GameUIState extends UserInterfaceState implements WebsocketObserver
 
         options.add(new UserInterfaceOption(List.of("l", "leave"), isPlayer ? "Leave this game" : "stop observing this game",
                 List.of(), (args) -> leave()));
+        options.add(new UserInterfaceOption(List.of("c", "color"), "Change color scheme",
+                List.of(new CommandArgument<>("Scheme number 1-" + ChessBoardColorScheme.COLOR_SCHEMES.size(), Integer.class)),
+                this::chooseColor));
+        options.add(new UserInterfaceOption(List.of("t", "toggle"), "Toggle pieces vs characters", List.of(),
+                args -> {
+                    boardPrinter.toggleUsePieceChars();
+                    return redraw();
+                }));
 
         return options;
     }
@@ -94,6 +99,7 @@ public class GameUIState extends UserInterfaceState implements WebsocketObserver
             return UserInterfaceCommandOutput.failure("color number cannot be greater than %d".formatted(max));
         }
         boardPrinter.setColorScheme(ChessBoardColorScheme.COLOR_SCHEMES.get(newColor - 1));
+        boardPrinter.printGame();
         return UserInterfaceCommandOutput.success("Color scheme set to scheme %d".formatted(newColor));
     }
 

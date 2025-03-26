@@ -14,7 +14,8 @@ import java.util.stream.Collectors;
 public class BoardPrinter {
     private final ChessGame.TeamColor perspective;
     private ChessBoardColorScheme colorScheme;
-    private ChessGame currentGame = null;
+    private ChessGame currentGame = new ChessGame();
+    private boolean usePieceChars = true;
 
     public BoardPrinter(ChessGame.TeamColor perspective) {
         this.perspective = perspective;
@@ -29,14 +30,15 @@ public class BoardPrinter {
         this.colorScheme = colorScheme;
     }
 
+    public void toggleUsePieceChars() {
+        usePieceChars = !usePieceChars;
+    }
+
     public void printGame() {
         printGame(new HashSet<>(), new HashSet<>());
     }
 
     public void printNewGame(ChessGame newGame) {
-        if(currentGame == null) {
-            currentGame = newGame;
-        }
         Collection<ChessPosition> differences = determineDifferences(newGame, currentGame);
         setCurrentGame(newGame);
         printGame(new HashSet<>(), differences);
@@ -76,21 +78,14 @@ public class BoardPrinter {
 
                 ChessPiece piece = currentGame.getBoard().getPiece(pos);
                 if (piece == null) {
-                    System.out.print(EscapeSequences.EMPTY);
+                    System.out.print(usePieceChars ? EscapeSequences.EMPTY : "\u2009   \u2009");
                 }
                 else {
                     System.out.print(switch (piece.getTeamColor()) {
                         case WHITE -> colorScheme.getColorEscapeSequence(ChessBoardColorScheme.ColorType.WHITE_PIECE);
                         case BLACK -> colorScheme.getColorEscapeSequence(ChessBoardColorScheme.ColorType.BLACK_PIECE);
                     });
-                    System.out.print(switch (piece.getPieceType()) {
-                        case KING -> EscapeSequences.BLACK_KING;
-                        case QUEEN -> EscapeSequences.BLACK_QUEEN;
-                        case BISHOP -> EscapeSequences.BLACK_BISHOP;
-                        case KNIGHT -> EscapeSequences.BLACK_KNIGHT;
-                        case ROOK -> EscapeSequences.BLACK_ROOK;
-                        case PAWN -> EscapeSequences.BLACK_PAWN;
-                    });
+                    System.out.print(getPieceChar(piece));
                 }
             }
 
@@ -133,11 +128,11 @@ public class BoardPrinter {
 
         if (perspective == ChessGame.TeamColor.BLACK) {
             for (char c = 'h'; c >= 'a'; c--) {
-                System.out.printf("\u2003%s ", c);
+                System.out.printf("\u2009 %s \u2009", c);
             }
         } else {
             for (char c = 'a'; c <= 'h'; c++) {
-                System.out.printf("\u2003%s ", c);
+                System.out.printf("\u2009 %s \u2009", c);
             }
         }
 
@@ -164,4 +159,28 @@ public class BoardPrinter {
         return differences;
     }
 
+
+    private String getPieceChar(ChessPiece piece) {
+        if(usePieceChars) {
+            return switch (piece.getPieceType()) {
+                case KING -> EscapeSequences.BLACK_KING;
+                case QUEEN -> EscapeSequences.BLACK_QUEEN;
+                case BISHOP -> EscapeSequences.BLACK_BISHOP;
+                case KNIGHT -> EscapeSequences.BLACK_KNIGHT;
+                case ROOK -> EscapeSequences.BLACK_ROOK;
+                case PAWN -> EscapeSequences.BLACK_PAWN;
+            };
+        }
+        else {
+            String base = switch (piece.getPieceType()) {
+                case KING -> "\u2009 k \u2009";
+                case QUEEN -> "\u2009 q \u2009";
+                case BISHOP -> "\u2009 b \u2009";
+                case KNIGHT -> "\u2009 n \u2009";
+                case ROOK -> "\u2009 r \u2009";
+                case PAWN -> "\u2009 p \u2009";
+            };
+            return piece.getTeamColor() == ChessGame.TeamColor.WHITE ? base.toUpperCase() : base.toLowerCase();
+        }
+    }
 }
