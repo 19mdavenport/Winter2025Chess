@@ -28,20 +28,6 @@ public class GameUIState extends UserInterfaceState implements WebsocketObserver
         this.boardPrinter = boardPrinter;
     }
 
-//    @Override
-//    public String help() {
-//        return """
-//                Options:
-//                Highlight legal moves: "hl", "highlight" <position> (e.g. f5)
-//                Make a move: "m", "move", "make" <source> <destination> <optional promotion>(e.g. f5 e4 q)
-//                Redraw Chess Board: "r", "redraw"
-//                Change color scheme: "c", "colors" <color number> (enter no number to enter color scheme creator)
-//                Resign from game: "res", "resign"
-//                Leave game: "leave"
-//                Print this message: "h", "help"
-//                """;
-//    }
-
     @Override
     protected Collection<UserInterfaceOption> createOptions() {
         List<UserInterfaceOption> options = new ArrayList<>();
