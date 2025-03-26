@@ -60,17 +60,18 @@ public class GameUIState extends UserInterfaceState implements WebsocketObserver
                                     }, null)),
                     this::makeMove));
         }
-        
-        options.add(new UserInterfaceOption(List.of("r", "redraw"), "Redraw Chess Board", 
+
+        options.add(new UserInterfaceOption(List.of("r", "redraw"), "Redraw Chess Board",
                 List.of(), (args) -> redraw()));
-        
-        //TODO: colors
-        
+        options.add(new UserInterfaceOption(List.of("c", "color"), "Change color scheme",
+                List.of(new CommandArgument<>("Scheme number 1-" + ChessBoardColorScheme.COLOR_SCHEMES.size(), Integer.class)),
+                this::chooseColor));
+
         if (isPlayer) {
-            options.add(new UserInterfaceOption(List.of("res", "resign"), "Resign from game", 
+            options.add(new UserInterfaceOption(List.of("res", "resign"), "Resign from game",
                     List.of(), (args) -> resign()));
         }
-        
+
         options.add(new UserInterfaceOption(List.of("l", "leave"), isPlayer ? "Leave this game" : "stop observing this game",
                 List.of(), (args) -> leave()));
 
@@ -97,26 +98,18 @@ public class GameUIState extends UserInterfaceState implements WebsocketObserver
         return UserInterfaceCommandOutput.success("");
     }
 
-//    private UserInterfaceCommandOutput colors(String[] args) {
-//        if (args.length != 1) {
-//            new ColorSchemeCreator().createColorScheme();
-//            return UserInterfaceCommandOutput.asdf("", true);
-//        }
-//        try {
-//            int newColor = Integer.parseInt(args[0]);
-//            if (newColor < 1) {
-//                return UserInterfaceCommandOutput.asdf("color number cannot be less than 1", false);
-//            }
-//            int max = ChessBoardColorScheme.COLOR_SCHEMES.size();
-//            if (newColor > max) {
-//                return UserInterfaceCommandOutput.asdf("color number cannot be greater than %d".formatted(max), false);
-//            }
-//            DataCache.getInstance().setColorScheme(ChessBoardColorScheme.COLOR_SCHEMES.get(newColor - 1));
-//            return UserInterfaceCommandOutput.asdf("Color scheme set to scheme %d".formatted(newColor), true);
-//        } catch (NumberFormatException e) {
-//            return UserInterfaceCommandOutput.asdf("could not parse %s as a number".formatted(args[0]), false);
-//        }
-//    }
+    private UserInterfaceCommandOutput chooseColor(Object[] args) {
+        int newColor = (int) args[0];
+        if (newColor < 1) {
+            return UserInterfaceCommandOutput.failure("color number cannot be less than 1");
+        }
+        int max = ChessBoardColorScheme.COLOR_SCHEMES.size();
+        if (newColor > max) {
+            return UserInterfaceCommandOutput.failure("color number cannot be greater than %d".formatted(max));
+        }
+        boardPrinter.setColorScheme(ChessBoardColorScheme.COLOR_SCHEMES.get(newColor - 1));
+        return UserInterfaceCommandOutput.success("Color scheme set to scheme %d".formatted(newColor));
+    }
 
     private UserInterfaceCommandOutput resign() {
         return UserInterfaceCommandOutput.newState("", new SingleUseUIState("Are you sure you want to resign? [y/n]") {
@@ -125,9 +118,9 @@ public class GameUIState extends UserInterfaceState implements WebsocketObserver
                 return List.of(
                         new UserInterfaceOption(List.of("y", "yes"), "create a new game of chess",
                                 List.of(), args -> {
-                                    server.resign();
-                                    return UserInterfaceCommandOutput.success("");
-                                }),
+                            server.resign();
+                            return UserInterfaceCommandOutput.success("");
+                        }),
                         new UserInterfaceOption(List.of("n", "no"), "do not create new game", List.of(),
                                 (args) -> UserInterfaceCommandOutput.success("Did not resign."))
                 );
